@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AI Chat Widget</title>
+  <style>
+    #ai-widget { position: fixed; bottom:20px; right:20px; width:300px; max-height:400px; background:white; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.2); display:flex; flex-direction:column; font-family:Arial; z-index:9999; }
+    #ai-widget-header { background:#4CAF50; color:white; padding:10px; cursor:pointer; text-align:center; }
+    #ai-widget-messages { flex:1; padding:10px; overflow-y:auto; }
+    #ai-widget-input { display:flex; }
+    #ai-widget-input input { flex:1; padding:8px; border:1px solid #ccc; border-top:none; }
+    #ai-widget-input button { padding:8px; background:#4CAF50; color:white; border:none; cursor:pointer; }
+    .user { text-align:right; margin:5px; }
+    .bot { text-align:left; margin:5px; color:blue; }
+  </style>
+</head>
+<body>
+<div id="ai-widget">
+  <div id="ai-widget-header">Chat with AI</div>
+  <div id="ai-widget-messages"></div>
+  <div id="ai-widget-input">
+    <input id="ai-input" placeholder="Ask about AI chatbots..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+const header = document.getElementById("ai-widget-header");
+const messages = document.getElementById("ai-widget-messages");
+const input = document.getElementById("ai-input");
+
+// Toggle widget visibility
+header.addEventListener("click", () => {
+  messages.style.display = messages.style.display === "none" ? "block" : "none";
+  input.parentElement.style.display = input.parentElement.style.display === "none" ? "flex" : "none";
+});
+
+// Send user message to Node.js server
+async function sendMessage() {
+  const userText = input.value;
+  if (!userText) return;
+
+  // Display user message
+  messages.innerHTML += `<div class="user">${userText}</div>`;
+  input.value = "";
+
+  try {
+    const response = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: userText })
+    });
+
+    const data = await response.json();
+
+    // Display AI response
+    messages.innerHTML += `<div class="bot">${data.reply}</div>`;
+    messages.scrollTop = messages.scrollHeight;
+
+  } catch (error) {
+    messages.innerHTML += `<div class="bot">Error: Could not connect to server.</div>`;
+  }
+}
+</script>
+</body>
+</html>
